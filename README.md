@@ -75,8 +75,7 @@ DjangoChannelsChatApp-main/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/meerabijaz/DjangoChannelsChatApp.git
-   cd DjangoChannelsChatApp
+   git clone https://github.com/meerabijaz/Django-Web-Application-Using-DRF-and-Web-Socket
 ````
 
 2. **Install dependencies**
