@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Enterprise Messaging</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Updated Colors based on image_e3b727.png */
+            --primary-dark: #34495E; /* Dark grey/blue for main text, similar to dashboard titles */
+            --accent-purple: #8B77DF; /* Deeper purple, matching elements in the example */
+            --secondary-dark-purple: #6A5ACD; /* Keeping a complementary purple for strong accents */
+            --highlight-green: #28A745; /* Green from the "New Chat" button */
+            --highlight-blue: #00BCD4; /* Cyan/Light Blue from the example dashboard */
+            --highlight-orange: #FFC107; /* Orange/Yellow from the example dashboard */
+            --background-cream: #F5F7FA; /* Very light grey/off-white background */
+            --surface-white: #FFFFFF; /* Pristine White for clean card and panel surfaces */
+            --border-light: #E0E6EB; /* Light grey for subtle borders */
+            --text-primary: #333333; /* Darker charcoal for main text */
+            --text-secondary: #7F8C8D; /* Muted Grey for secondary text */
+            --text-tertiary: #A7B1BD; /* Lighter Grey for subtle hints */
+            --shadow-soft: rgba(0, 0, 0, 0.08); /* Slightly more visible soft shadow */
+            --shadow-medium: rgba(0, 0, 0, 0.20); /* Slightly more pronounced shadow for depth */
+            --gradient-subtle: linear-gradient(135deg, #FDFDFD, #F4F6F9); /* A very subtle background gradient */
+            --chat-bubble-sent: #E8F5FF; /* Very light blue for outgoing messages, from example */
+            --chat-bubble-received: #FFFFFF; /* White for incoming messages */
+            --status-read: var(--secondary-dark-purple); /* Use the stronger purple for read status */
+            --status-delivered: #8CC067; /* Soft Sage Green for delivered */
+            --status-sent: #BCC4CD; /* Light Slate for sent */
+        }
+
+        body {
+            font-family: 'Open Sans', 'Roboto', Arial, sans-serif;
+            background: var(--background-cream);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden;
+        }
+
+        .split-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .chat-list-panel {
+            width: 380px;
+            min-width: 350px;
+            background: var( --border-light);
+            box-shadow: 3px 0 15px var(--shadow-soft);
+            border-right: 1px solid var(--border-light);
+        }
+
+        .user-bar {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 600;
+            font-size: 1.2em;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-white);
+            font-family: 'Merriweather Sans', sans-serif;
+            gap: 15px;
+            flex-wrap: nowrap;
+        }
+
+        .user-bar span {
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
+            flex-shrink: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .action-buttons button {
+            background: var(--accent-purple); /* Uses new accent-purple */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            font-size: 0.9em;
+            box-shadow: 0 4px 10px rgba(139, 119, 223, 0.2); /* Adjusted shadow to new purple */
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-buttons button:hover {
+            background: #7A6BD5; /* Slightly darker new purple */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(139, 119, 223, 0.3);
+        }
+
+        .action-buttons button#start-chat-btn {
+            background: var(--highlight-green); /* Uses new highlight-green */
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+        }
+
+        .action-buttons button#start-chat-btn:hover {
+            background: #218838;
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .search-bar {
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--background-cream);
+        }
+
+        .search-bar input {
+            width: calc(100% - 30px);
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            font-size: 0.98em;
+            background: var(--surface-white);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .search-bar input:focus {
+            border-color: var(--highlight-blue); /* Changed to highlight-blue */
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.15), inset 0 1px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            background: var(--surface-white);
+        }
+
+        .chat-list-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 25px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.2s ease;
+            position: relative;
+        }
+
+        .chat-list-item:hover {
+            background: #5d91c6;
+        }
+
+        .chat-list-item.active {
+            background: #5a7bbc; /* Light blue background for active chat */
+            border-left: 5px solid var(--highlight-blue); /* Changed to highlight-blue for active indicator */
+            padding-left: 20px;
+            box-shadow: inset 3px 0 8px rgba(0, 188, 212, 0.1);
+        }
+
+        .profile-icon, .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #a3bbd9;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.3em;
+            margin-right: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 3px 10px var(--shadow-soft);
+            text-transform: uppercase;
+        }
+
+        .chat-list-item > div:last-child {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .chat-title {
+            font-size: 1.15em;
+            font-weight: 500;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'Merriweather Sans', sans-serif;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-preview {
+            font-size: 0.92em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .online-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--highlight-green);
+            margin-left: 10px;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            top: 2px;
+        }
+
+        .chat-main-panel {
+            flex: 1;
+            background: var(--background-cream);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -3px 0 15px var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 30px;
+            background: var(--surface-white);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 3px 10px var(--shadow-soft);
+            flex-shrink: 0;
+        }
+
+        .chat-header .profile-icon {
+            margin-right: 20px;
+            background: #CCDDED;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-header .chat-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 35px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="subtle-grid" patternUnits="userSpaceOnUse" width="10" height="10"><path d="M10 0 L0 0 L0 10" fill="none" stroke="%23F0F4F8" stroke-width="0.8"/></pattern></defs><rect width="100%" height="100%" fill="url(%23subtle-grid)"/></svg>') repeat; /* Adjusted grid color */
+            background-size: 60px 60px;
+        }
+
+        .empty-chat-message {
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 60px;
+            font-size: 1.2em;
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .bubble-row {
+            display: flex;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .bubble-row.self {
+            justify-content: flex-end;
+        }
+
+        .chat-bubble {
+            max-width: 68%;
+            padding: 16px 22px;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px var(--shadow-soft);
+            font-size: 1.05em;
+            word-break: break-word;
+            line-height: 1.6;
+            position: relative;
+            margin: 0 12px;
+            transition: transform 0.1s ease-out;
+        }
+
+        .chat-bubble.sent {
+            background: var(--chat-bubble-sent); /* Uses new chat-bubble-sent */
+            color: var(--text-primary);
+            border-bottom-right-radius: 10px;
+        }
+
+        .chat-bubble.received {
+            background: var(--chat-bubble-received); /* Uses new chat-bubble-received */
+            color: var(--text-primary);
+            border-bottom-left-radius: 10px;
+        }
+
+        .chat-bubble .meta {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            opacity: 0.8;
+        }
+
+        .chat-bubble.received .meta {
+            text-align: left;
+            justify-content: flex-start;
+        }
+
+        .chat-bubble strong {
+            display: block;
+            font-size: 0.9em;
+            color: var(--secondary-dark-purple);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .tick {
+            font-size: 0.85em;
+        }
+
+        .tick-sent { color: var(--status-sent); }
+        .tick-delivered { color: var(--status-delivered); }
+        .tick-read { color: var(--status-read); }
+
+        .chat-input-panel {
+            padding: 20px 30px;
+            background: var(--surface-white);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 22px;
+            border-radius: 30px;
+            border: 1px solid var(--border-light);
+            font-size: 1.05em;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #FDFDFE;
+            color: var(--text-primary);
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .chat-input:focus {
+            border-color: var(--highlight-blue); /* Changed to highlight-blue */
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.15), inset 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .send-btn {
+            background: var(--accent-purple); /* Uses new accent-purple */
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 15px 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            font-size: 1.05em;
+            box-shadow: 0 4px 12px rgba(139, 119, 223, 0.25); /* Adjusted shadow */
+        }
+
+        .send-btn:hover {
+            background: #7A6BD5; /* Slightly darker new purple */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 119, 223, 0.35);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--surface-white);
+            border-radius: 15px;
+            padding: 35px 30px;
+            min-width: 450px;
+            max-width: 90%;
+            box-shadow: 0 15px 50px var(--shadow-medium);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateY(-40px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 28px;
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 1.6em;
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+        }
+
+        .modal-content input,
+        .modal-content select {
+            width: calc(100% - 30px);
+            padding: 14px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            font-size: 1em;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            background: #FDFDFE;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .modal-content input:focus,
+        .modal-content select:focus {
+            border-color: var(--highlight-blue); /* Changed to highlight-blue */
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.15), inset 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .modal-content select {
+            min-height: 140px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%237F8C8D" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+        }
+
+        .modal-error {
+            color: #E74C3C;
+            font-size: 0.95em;
+            margin-bottom: 18px;
+            text-align: center;
+            min-height: 1.2em;
+            font-weight: 500;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            font-size: 1em;
+            color: #fff;
+            box-shadow: 0 4px 10px var(--shadow-soft);
+        }
+
+        .modal-buttons button#new-chat-submit,
+        .modal-buttons button#new-group-submit {
+            background: var(--highlight-green); /* Uses highlight-green */
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+        }
+
+        .modal-buttons button#new-chat-submit:hover,
+        .modal-buttons button#new-group-submit:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(40, 167, 69, 0.35);
+        }
+
+        .modal-buttons button#new-chat-cancel,
+        .modal-buttons button#new-group-cancel {
+            background: var(--text-tertiary);
+            color: var(--primary-dark);
+            box-shadow: 0 4px 10px rgba(167, 177, 189, 0.2);
+        }
+
+        .modal-buttons button#new-chat-cancel:hover,
+        .modal-buttons button#new-group-cancel:hover {
+            background: #9AA7B6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(167, 177, 189, 0.3);
+        }
+
+        /* Custom scrollbar */
+        .chat-list, .chat-history {
+            scrollbar-width: thin;
+            scrollbar-color: var(--highlight-blue) var(--background-cream); /* Scrollbar thumb changed to highlight-blue */
+        }
+
+        .chat-list::-webkit-scrollbar,
+        .chat-history::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .chat-list::-webkit-scrollbar-thumb,
+        .chat-history::-webkit-scrollbar-thumb {
+            background: var(--highlight-blue); /* Scrollbar thumb changed to highlight-blue */
+            border-radius: 12px;
+            border: 2px solid var(--background-cream);
+        }
+
+        .chat-list::-webkit-scrollbar-track,
+        .chat-history::-webkit-scrollbar-track {
+            background: var(--background-cream);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .chat-list-panel {
+                min-width: 280px;
+                width: 300px;
+            }
+            .user-bar, .search-bar, .chat-list-item, .chat-header, .chat-input-panel {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .chat-history {
+                padding: 25px 30px;
+            }
+            .chat-bubble {
+                padding: 14px 20px;
+                max-width: 75%;
+            }
+            .profile-icon, .avatar {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2em;
+                margin-right: 15px;
+            }
+            .chat-title {
+                font-size: 1.1em;
+            }
+            .chat-header .chat-title {
+                font-size: 1.4em;
+            }
+            .action-buttons button {
+                padding: 8px 14px;
+                font-size: 0.85em;
+            }
+            .user-bar {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+                height: auto;
+            }
+            .chat-list-panel,
+            .chat-main-panel {
+                width: 100%;
+                min-width: 0;
+                height: 50vh;
+            }
+            .chat-main-panel {
+                order: -1;
+                height: calc(100vh - 80px);
+                border-bottom: 1px solid var(--border-light);
+            }
+            .chat-list-panel {
+                border-bottom: 1px solid var(--border-light);
+                box-shadow: 0 2px 10px var(--shadow-soft);
+            }
+            .chat-list-item.active {
+                border-left: none;
+                border-bottom: 5px solid var(--highlight-blue); /* Changed to highlight-blue */
+                padding-left: 25px;
+                padding-bottom: 13px;
+            }
+            .user-bar {
+                padding: 15px 20px;
+                font-size: 1.1em;
+                flex-wrap: wrap;
+            }
+            .user-bar span {
+                flex-basis: 100%;
+                order: 1;
+                margin-bottom: 10px;
+                white-space: normal;
+            }
+            .action-buttons {
+                flex-basis: 100%;
+                order: 2;
+                justify-content: flex-start;
+            }
+            .action-buttons button {
+                padding: 9px 15px;
+                font-size: 0.8em;
+            }
+            .search-bar {
+                padding: 12px 20px;
+            }
+            .chat-header {
+                padding: 15px 25px;
+            }
+            .chat-history {
+                padding: 20px 25px;
+            }
+            .chat-input-panel {
+                padding: 15px 20px;
+            }
+            .chat-input, .send-btn {
+                padding: 12px 18px;
+                font-size: 0.95em;
+            }
+            .modal-content {
+                min-width: 300px;
+                padding: 25px 20px;
+            }
+            .modal-content h3 {
+                font-size: 1.4em;
+            }
+            .modal-buttons button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+        }
+        .chat-menu-popup {
+          position: absolute;
+          right: 30px;
+          top: 40px;
+          background: #fff;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+          z-index: 1001;
+          min-width: 120px;
+          padding: 0;
+          margin: 0;
+          display: none;
+        }
+        .chat-menu-popup.show {
+          display: block;
+        }
+        .chat-menu-popup ul {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        .chat-menu-popup li {
+          padding: 12px 18px;
+          cursor: pointer;
+          color: #E74C3C;
+          font-weight: 500;
+          border-bottom: 1px solid #f2f2f2;
+          background: #fff;
+          transition: background 0.2s;
+        }
+        .chat-menu-popup li:last-child {
+          border-bottom: none;
+        }
+        .chat-menu-popup li:hover {
+          background: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+<div class="split-container">
+    <div class="chat-list-panel">
+        <div class="user-bar">
+            <span>{{ user.username }}</span>
+            <div class="action-buttons">
+                <button id="start-chat-btn">New Chat</button>
+                <button id="start-group-btn">New Group</button>
+            </div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="chat-search" placeholder="Search chats..." onkeyup="filterChats()">
+        </div>
+        <ul class="chat-list" id="chatList">
+            {# Private Chats #}
+            {% for info in private_rooms_info %}
+            <li class="chat-list-item" data-room-name="{{ info.room.room_name }}">
+                <div class="profile-icon">{{ info.room.room_name|slice:":2"|upper }}</div>
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <div class="chat-title" style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>
+                        {% for u in info.room.participants.all %}{% if u != user %}{{ u.username }}{% endif %}{% endfor %}
+                        </span>
+                        <button class="chat-menu-btn" title="Chat options" data-room-type="private" data-room-name="{{ info.room.room_name }}" style="background:none;border:none;color:#888;font-size:1.5em;cursor:pointer;padding:0 8px;">&#8942;</button>
+                    </div>
+                    <div class="chat-preview">{{ info.last_message|default:"No messages yet" }}</div>
+                </div>
+            </li>
+            {% endfor %}
+            {# Group Chats #}
+            {% for info in group_rooms_info %}
+            <li class="chat-list-item" data-room-name="{{ info.room.room_name }}">
+                <div class="profile-icon">{{ info.room.room_name|cut:" "|slice:":2"|upper }}</div>
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <div class="chat-title" style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>{{ info.room.room_name }}</span>
+                        <button class="chat-menu-btn" title="Group options" data-room-type="group" data-room-name="{{ info.room.room_name }}" style="background:none;border:none;color:#888;font-size:1.5em;cursor:pointer;padding:0 8px;">&#8942;</button>
+                    </div>
+                    <div class="chat-preview">{{ info.last_message|default:"No messages yet" }}</div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="chat-main-panel">
+        <div class="chat-header">
+            <div class="profile-icon"></div>
+            <div class="chat-title"></div>
+        </div>
+        <div class="chat-history" id="chatHistory">
+            <div id="emptyChatMsg" class="empty-chat-message">
+                Select a chat to start messaging
+            </div>
+            <p id="typing-indicator" class="text-xs italic text-gray-500 px-4 mt-1"></p>
+        </div>
+        <form class="chat-input-panel" id="chatForm" autocomplete="off" style="display:none;">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type a message..." />
+            <button type="submit" class="send-btn">Send</button>
+        </form>
+    </div>
+</div>
+
+<div id="new-chat-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Start New Chat</h3>
+        <input type="text" id="new-chat-username" placeholder="Enter username...">
+        <div id="new-chat-error" class="modal-error"></div>
+        <div class="modal-buttons">
+            <button id="new-chat-submit">Start Chat</button>
+            <button id="new-chat-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="new-group-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Create Group</h3>
+        <input type="text" id="new-group-name" placeholder="Group name...">
+        <select id="new-group-users" multiple>
+            {% for u in users %}
+                {% if u != user %}
+                    <option value="{{ u.id }}">{{ u.username }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <div id="new-group-error" class="modal-error"></div>
+        <div class="modal-buttons">
+            <button id="new-group-submit">Create Group</button>
+            <button id="new-group-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="chat-menu-popup" class="chat-menu-popup">
+  <ul>
+    <li id="chat-menu-delete">Delete</li>
+  </ul>
+</div>
+
+<script>
+// Helper: Get initials from name
+function getInitials(name) {
+    if (!name) return '';
+    const words = name.trim().split(' ');
+    if (words.length === 1) return words[0][0].toUpperCase();
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+let currentRoom = null;
+let chatSocket = null;
+let typingTimeout;
+
+const chatList = document.getElementById('chatList');
+const chatHistory = document.getElementById('chatHistory');
+const chatHeader = document.querySelector('.chat-header .chat-title');
+const chatHeaderIcon = document.querySelector('.chat-header .profile-icon');
+const emptyChatMsg = document.getElementById('emptyChatMsg');
+const chatForm = document.getElementById('chatForm');
+
+// Add typing indicator div under chat history
+const typingIndicator = document.getElementById('typing-indicator');
+let typingUsers = new Set();
+
+function showTyping(user) {
+    typingUsers.add(user);
+    typingIndicator.textContent = Array.from(typingUsers).join(', ') + ' is typing...';
+    typingIndicator.style.display = '';
+}
+function hideTyping(user) {
+    typingUsers.delete(user);
+    if (typingUsers.size === 0) {
+        typingIndicator.textContent = '';
+        typingIndicator.style.display = 'none';
+    } else {
+        typingIndicator.textContent = Array.from(typingUsers).join(', ') + ' is typing...';
+    }
+}
+
+const chatInput = document.getElementById('chatInput');
+
+// Send typing event on input
+chatInput.addEventListener('input', function() {
+    if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+        chatSocket.send(JSON.stringify({
+            'typing': 'start',
+            'room_name': currentRoom
+        }));
+    }
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+                'typing': 'stop',
+                'room_name': currentRoom
+            }));
+        }
+    }, 1000);
+});
+
+// Helper: Render a message bubble row (like old chat page)
+function renderMessageBubble(msg, currentUsername) {
+    const isSelf = msg.is_self || msg.sender === currentUsername;
+    const bubbleRow = document.createElement('div');
+    bubbleRow.className = 'bubble-row' + (isSelf ? ' self' : '');
+
+    // Avatar (always present for both self and received)
+    const avatar = document.createElement('div');
+    avatar.className = 'profile-icon avatar';
+    avatar.textContent = (msg.sender || '').charAt(0).toUpperCase();
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble' + (isSelf ? ' sent' : ' received');
+    bubble.innerHTML = msg.message ? msg.message.replace(/\n/g, '<br>') : '';
+
+    // Add sender name for received messages in groups
+    if (!isSelf && msg.sender && currentRoom && currentRoom.startsWith('group_')) {
+        const senderTag = document.createElement('strong');
+        senderTag.textContent = msg.sender;
+        bubble.prepend(senderTag);
+    }
+
+    // Add timestamp and status
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    let timeStr = '';
+    if (msg.timestamp) {
+        const d = new Date(msg.timestamp);
+        if (!isNaN(d)) {
+            timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+    }
+    meta.innerHTML = `<span>${timeStr}</span>`;
+    if (isSelf && msg.status) {
+        let tick = '';
+        if (msg.status === 'read') tick = '<span class="tick tick-read">✔✔</span>';
+        else if (msg.status === 'delivered') tick = '<span class="tick tick-delivered">✔✔</span>';
+        else tick = '<span class="tick tick-sent">✔</span>';
+        meta.innerHTML += `<span class="status">${tick}</span>`;
+    }
+    bubble.appendChild(meta);
+
+    if (isSelf) {
+        bubbleRow.appendChild(bubble);
+        bubbleRow.appendChild(avatar);
+    } else {
+        bubbleRow.appendChild(avatar);
+        bubbleRow.appendChild(bubble);
+    }
+    return bubbleRow;
+}
+
+// Improved auto-select and remember last selected chat
+window.addEventListener('DOMContentLoaded', function() {
+    function trySelectChat(roomName) {
+        let chatToSelect = null;
+        if (roomName) {
+            chatToSelect = Array.from(document.querySelectorAll('.chat-list-item')).find(
+                item => item.getAttribute('data-room-name') === roomName
+            );
+        }
+        if (!chatToSelect) {
+            chatToSelect = document.querySelector('.chat-list-item');
+        }
+
+        if (chatToSelect) {
+            chatToSelect.click();
+            emptyChatMsg.style.display = 'none';
+            chatForm.style.display = '';
+            console.log('Chat auto-selected:', chatToSelect.getAttribute('data-room-name'));
+        } else {
+            emptyChatMsg.style.display = '';
+            chatForm.style.display = 'none';
+            console.log('No chats found to auto-select.');
+        }
+    }
+    // Try to select last selected chat from localStorage, else first chat
+    const lastRoom = localStorage.getItem('lastSelectedRoom');
+    trySelectChat(lastRoom);
+    // A small delay to ensure elements are rendered before attempting click again
+    setTimeout(() => trySelectChat(lastRoom), 200);
+
+    // Connect to global notification WebSocket for real-time group events
+    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const globalSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notification/global/');
+    globalSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.new_group) {
+            const group = data.new_group;
+            const chatList = document.getElementById('chatList');
+            if (!chatList.querySelector(`[data-room-name="${group.room_name}"]`)) {
+                const li = document.createElement('li');
+                li.className = 'chat-list-item';
+                li.setAttribute('data-room-name', group.room_name);
+                li.innerHTML = `
+                    <div class="profile-icon">${group.room_name.slice(0,2).toUpperCase()}</div>
+                    <div>
+                        <div class="chat-title">${group.room_name}</div>
+                        <div class="chat-preview">No messages yet</div>
+                    </div>
+                `;
+                chatList.prepend(li);
+            }
+        }
+    };
+
+    // Connect to user-specific notification WebSocket for real-time group events
+    const userSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notification/user_' + window.currentUsername + '/');
+    userSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.new_group) {
+            const group = data.new_group;
+            const chatList = document.getElementById('chatList');
+            if (!chatList.querySelector(`[data-room-name="${group.room_name}"]`)) {
+                const li = document.createElement('li');
+                li.className = 'chat-list-item';
+                li.setAttribute('data-room-name', group.room_name);
+                li.innerHTML = `
+                    <div class="profile-icon">${group.room_name.slice(0,2).toUpperCase()}</div>
+                    <div>
+                        <div class="chat-title">${group.room_name}</div>
+                        <div class="chat-preview">No messages yet</div>
+                    </div>
+                `;
+                chatList.prepend(li);
+            }
+        }
+    };
+});
+
+chatList.addEventListener('click', function(e) {
+    let item = e.target;
+    while (item && !item.classList.contains('chat-list-item')) {
+        item = item.parentElement;
+    }
+    if (!item) return;
+
+    // Remove active from all
+    document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+
+    // Get room name and chat title
+    const roomName = item.getAttribute('data-room-name');
+    const chatTitle = item.querySelector('.chat-title span').innerText;
+
+    // Remember last selected chat
+    localStorage.setItem('lastSelectedRoom', roomName);
+
+    // Update header
+    chatHeader.textContent = chatTitle;
+    chatHeaderIcon.textContent = getInitials(chatTitle);
+    
+
+
+    // Fetch messages
+    fetch(`/chat/api/messages/${encodeURIComponent(roomName)}/`)
+        .then(res => res.json())
+        .then(data => {
+            chatHistory.innerHTML = '';
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    chatHistory.appendChild(renderMessageBubble(msg, window.currentUsername));
+                });
+            } else {
+                const noMessagesDiv = document.createElement('div');
+                noMessagesDiv.className = 'empty-chat-message';
+                noMessagesDiv.textContent = 'No messages in this chat yet. Start the conversation!';
+                chatHistory.appendChild(noMessagesDiv);
+            }
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        });
+
+    // WebSocket
+    currentRoom = roomName;
+    connectWebSocket(roomName);
+
+    emptyChatMsg.style.display = 'none';
+    chatForm.style.display = '';
+    chatInput.focus();
+});
+
+// Send message via WebSocket
+chatForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!chatInput.value.trim() || !chatSocket) return;
+    chatSocket.send(JSON.stringify({
+        'message': chatInput.value,
+        'room_name': currentRoom
+    }));
+    chatInput.value = '';
+});
+
+function connectWebSocket(roomName) {
+    if (chatSocket) {
+        chatSocket.close();
+    }
+    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    chatSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + `/ws/notification/${roomName}/`
+    );
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        // Listen for new group events
+        if (data.new_group) {
+            const group = data.new_group;
+            const chatList = document.getElementById('chatList');
+            if (!chatList.querySelector(`[data-room-name="${group.room_name}"]`)) {
+                const li = document.createElement('li');
+                li.className = 'chat-list-item';
+                li.setAttribute('data-room-name', group.room_name);
+                li.innerHTML = `
+                    <div class="profile-icon">${group.room_name.slice(0,2).toUpperCase()}</div>
+                    <div>
+                        <div class="chat-title">${group.room_name}</div>
+                        <div class="chat-preview">No messages yet</div>
+                    </div>
+                `;
+                chatList.prepend(li);
+            }
+        }
+        // Improved typing indicator logic
+        if (data.typing) {
+            const typingUser = data.typing.username;
+            const status = data.typing.status;
+            if (typingUser !== window.currentUsername) {
+                if (status === 'start') {
+                    showTyping(typingUser);
+                } else if (status === 'stop') {
+                    hideTyping(typingUser);
+                }
+            }
+        }
+        // Real-time read tick update
+        if (data.read) {
+            // Mark all sent messages as read
+            document.querySelectorAll('.bubble-row.self .meta .status .tick').forEach(tick => {
+                tick.className = 'tick tick-read';
+                tick.textContent = '✔✔';
+            });
+        }
+        // Handle new messages
+        if (data.message) {
+            if (chatHistory.querySelector('.empty-chat-message')) {
+                chatHistory.innerHTML = '';
+            }
+            const msg = data.message;
+            chatHistory.appendChild(renderMessageBubble(msg, window.currentUsername));
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    };
+    chatSocket.onclose = function(e) {
+        console.warn('Chat socket closed unexpectedly:', e);
+    };
+    chatSocket.onerror = function(e) {
+        console.error('Chat socket error:', e);
+    };
+}
+
+// Set current username for WebSocket message alignment
+window.currentUsername = "{{ user.username|escapejs }}";
+
+// Filter chats
+function filterChats() {
+    var input = document.getElementById('chat-search');
+    var filter = input.value.toLowerCase();
+    var chats = document.getElementsByClassName('chat-list-item');
+    for (var i = 0; i < chats.length; i++) {
+        var name = chats[i].querySelector('.chat-title').innerText.toLowerCase();
+        chats[i].style.display = name.includes(filter) ? '' : 'none';
+    }
+}
+
+// Modal Logic for New Chat
+const newChatModal = document.getElementById('new-chat-modal');
+const newChatUsernameInput = document.getElementById('new-chat-username');
+const newChatErrorDiv = document.getElementById('new-chat-error');
+const newChatSubmitBtn = document.getElementById('new-chat-submit');
+const newChatCancelBtn = document.getElementById('new-chat-cancel');
+const startChatBtn = document.getElementById('start-chat-btn');
+
+startChatBtn.onclick = function() {
+    newChatModal.classList.add('show');
+    newChatUsernameInput.value = '';
+    newChatErrorDiv.textContent = '';
+    newChatUsernameInput.focus();
+};
+newChatCancelBtn.onclick = function() {
+    newChatModal.classList.remove('show');
+};
+newChatSubmitBtn.onclick = function() {
+    var username = newChatUsernameInput.value.trim();
+    if (!username) {
+        newChatErrorDiv.textContent = 'Please enter a username.';
+        return;
+    }
+    fetch('/ajax_create_private_room/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'other_username=' + encodeURIComponent(username)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.room_name) {
+            var chatList = document.getElementById('chatList');
+            var exists = Array.from(chatList.getElementsByClassName('chat-list-item')).some(
+                item => item.getAttribute('data-room-name') === data.room_name
+            );
+            if (!exists) {
+                var li = document.createElement('li');
+                li.className = 'chat-list-item';
+                li.setAttribute('data-room-name', data.room_name);
+                li.innerHTML = `<div class="profile-icon">${getInitials(username)}</div><div><div class="chat-title">${username}</div><div class="chat-preview">No messages yet</div></div>`;
+                chatList.prepend(li);
+            }
+            newChatModal.classList.remove('show');
+            setTimeout(() => {
+                var newItem = Array.from(chatList.getElementsByClassName('chat-list-item')).find(
+                    item => item.getAttribute('data-room-name') === data.room_name
+                );
+                if (newItem) newItem.click();
+            }, 100);
+        } else if (data.error) {
+            newChatErrorDiv.textContent = data.error;
+        }
+    })
+    .catch(() => {
+        newChatErrorDiv.textContent = 'An error occurred. Please try again.';
+    });
+};
+
+// Modal Logic for New Group
+const newGroupModal = document.getElementById('new-group-modal');
+const newGroupNameInput = document.getElementById('new-group-name');
+const newGroupUsersSelect = document.getElementById('new-group-users');
+const newGroupErrorDiv = document.getElementById('new-group-error');
+const newGroupSubmitBtn = document.getElementById('new-group-submit');
+const newGroupCancelBtn = document.getElementById('new-group-cancel');
+const startGroupBtn = document.getElementById('start-group-btn');
+
+startGroupBtn.onclick = function() {
+    newGroupModal.classList.add('show');
+    newGroupNameInput.value = '';
+    newGroupErrorDiv.textContent = '';
+    newGroupUsersSelect.selectedIndex = -1;
+    newGroupNameInput.focus();
+};
+newGroupCancelBtn.onclick = function() {
+    newGroupModal.classList.remove('show');
+};
+newGroupSubmitBtn.onclick = function() {
+    var groupName = newGroupNameInput.value.trim();
+    var userIds = Array.from(newGroupUsersSelect.selectedOptions).map(opt => opt.value);
+    if (!groupName) {
+        newGroupErrorDiv.textContent = 'Please enter a group name.';
+        return;
+    }
+    if (userIds.length === 0) {
+        newGroupErrorDiv.textContent = 'Please select at least one user for the group.';
+        return;
+    }
+    fetch('/ajax_create_group_room/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'group_name=' + encodeURIComponent(groupName) + '&user_ids=' + encodeURIComponent(userIds.join(','))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.room_name) {
+            var chatList = document.getElementById('chatList');
+            var exists = Array.from(chatList.getElementsByClassName('chat-list-item')).some(
+                item => item.getAttribute('data-room-name') === data.room_name
+            );
+            if (!exists) {
+                var li = document.createElement('li');
+                li.className = 'chat-list-item';
+                li.setAttribute('data-room-name', data.room_name);
+                li.innerHTML = `<div class="profile-icon">${getInitials(groupName)}</div><div><div class="chat-title">${groupName}</div><div class="chat-preview">No messages yet</div></div>`;
+                chatList.prepend(li);
+            }
+            newGroupModal.classList.remove('show');
+            setTimeout(() => {
+                var newItem = Array.from(chatList.getElementsByClassName('chat-list-item')).find(
+                    item => item.getAttribute('data-room-name') === data.room_name
+                );
+                if (newItem) newItem.click();
+            }, 100);
+        } else if (data.error) {
+            newGroupErrorDiv.textContent = data.error;
+        }
+    })
+    .catch(() => {
+        newGroupErrorDiv.textContent = 'An error occurred. Please try again.';
+    });
+};
+
+// Chat menu (three dots) logic
+let chatMenuPopup = document.getElementById('chat-menu-popup');
+let chatMenuDelete = document.getElementById('chat-menu-delete');
+let chatMenuTarget = null;
+
+document.querySelectorAll('.chat-menu-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Position the popup near the button
+    const rect = btn.getBoundingClientRect();
+    chatMenuPopup.style.top = (window.scrollY + rect.bottom + 2) + 'px';
+    chatMenuPopup.style.left = (window.scrollX + rect.right - 140) + 'px';
+    chatMenuPopup.classList.add('show');
+    chatMenuTarget = btn;
+  });
+});
+
+document.body.addEventListener('click', function(e) {
+  if (!chatMenuPopup.contains(e.target)) {
+    chatMenuPopup.classList.remove('show');
+    chatMenuTarget = null;
+  }
+});
+
+chatMenuDelete.addEventListener('click', function(e) {
+  if (!chatMenuTarget) return;
+  const roomName = chatMenuTarget.getAttribute('data-room-name');
+  const roomType = chatMenuTarget.getAttribute('data-room-type');
+  if (!roomName || !roomType) return;
+  chatMenuPopup.classList.remove('show');
+  chatMenuTarget = null;
+  if (!confirm('Do you want to delete it?')) return;
+  const url = roomType === 'private' ? '/ajax_delete_private_room/' : '/ajax_delete_group_room/';
+  fetch(url, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: 'room_name=' + encodeURIComponent(roomName)
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.status === 'deleted') {
+          // Remove chat from list
+          const li = document.querySelector('.chat-list-item[data-room-name="' + roomName + '"]');
+          if (li) li.remove();
+          // If this chat was active, clear chat panel
+          if (currentRoom === roomName) {
+              chatHeader.textContent = '';
+              chatHeaderIcon.textContent = '';
+              chatHistory.innerHTML = '<div id="emptyChatMsg" class="empty-chat-message">Select a chat to start messaging</div>';
+              chatForm.style.display = 'none';
+              currentRoom = null;
+          }
+      } else if (data.error) {
+          alert('Error: ' + data.error);
+      }
+  })
+  .catch(() => {
+      alert('An error occurred while deleting the chat.');
+  });
+});
+// If chat list is dynamically updated, you may want to re-attach these listeners after updates.
+</script>
+</body>
+</html>
